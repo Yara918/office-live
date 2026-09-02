@@ -1,0 +1,26 @@
+# 依赖与构建产物（不入库）
+node_modules/
+.next/
+dist/
+out/
+
+# 交付脚本生成的本地页面（运行时不入库）
+office-live-output/
+
+# 本地备份（保留在本地，不推送）
+*.bak
+*.bak-*
+*.bak2*
+*.bak2.json
+
+# 本地环境
+.env
+.env.local
+.env.*.local
+.spark/
+
+# 系统与编辑器
+.DS_Store
+Thumbs.db
+*.log
+npm-debug.log*

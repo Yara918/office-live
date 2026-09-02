@@ -1,0 +1,129 @@
+/* --- SeatManagerModal --- */
+
+.seat-manager-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: rgba(0, 0, 0, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: auto;
+  padding: 24px;
+}
+
+.seat-manager {
+  width: min(1080px, 94vw);
+  height: min(680px, 88vh);
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  grid-template-rows: auto 1fr;
+  gap: 12px;
+  padding: 14px;
+  pointer-events: auto;
+  background: var(--pixel-panel);
+  border: 1px solid var(--pixel-border);
+  border-radius: var(--pixel-radius-lg);
+  box-shadow: 4px 4px 24px rgba(0, 0, 0, 0.5);
+  color: var(--pixel-text);
+}
+
+.seat-manager__header {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-bottom: 2px solid var(--pixel-border);
+  padding-bottom: 10px;
+}
+
+.seat-manager__portrait-frame {
+  border: 2px solid var(--pixel-border);
+  border-radius: var(--pixel-radius-sm);
+  background: var(--pixel-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.seat-manager__portrait-frame--small {
+  width: 52px;
+  height: 64px;
+}
+
+.seat-manager__portrait-frame--large {
+  min-height: 260px;
+}
+
+.seat-manager__sprite-grid {
+  min-height: 0;
+  overflow-y: auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 10px;
+  padding-right: 4px;
+}
+
+.seat-manager__sprite-preview {
+  width: 100%;
+  height: 120px;
+  border: 2px solid var(--pixel-border);
+  border-radius: var(--pixel-radius-sm);
+  background: var(--pixel-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.seat-card {
+  border: 2px solid var(--pixel-border);
+  border-radius: var(--pixel-radius);
+  background: rgba(26, 21, 16, 0.6);
+  padding: 10px;
+  text-align: left;
+  cursor: pointer;
+  font-family: var(--pixel-font);
+  color: var(--pixel-text);
+}
+
+.seat-card--active {
+  border-color: var(--pixel-accent);
+  background: rgba(233, 69, 96, 0.14);
+}
+
+.seat-card__info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.seat-card__status {
+  font-size: 7px;
+  padding: 4px 6px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: var(--pixel-radius-sm);
+  flex-shrink: 0;
+}
+
+.seat-card__status--running {
+  background: rgba(250, 204, 21, 0.16);
+}
+
+.seat-card__summary {
+  font-size: 8px;
+  color: var(--pixel-muted);
+  margin-top: 8px;
+}
+
+.seat-hint {
+  border: 2px solid var(--pixel-border);
+  border-radius: var(--pixel-radius);
+  background: rgba(26, 21, 16, 0.5);
+  padding: 10px;
+  font-size: 8px;
+  color: var(--pixel-muted);
+}

@@ -1,0 +1,200 @@
+@import "tailwindcss";
+
+/* --- Pixel-style UI (dark overlay, game-standard) --- */
+
+:root {
+  --pixel-bg: #1a1814;
+  --pixel-panel: #252219;
+  --pixel-panel-fill: #322c24;
+  --pixel-border: #4a4238;
+  --pixel-border-light: #6b5f52;
+  --pixel-accent: #c9a227;
+  --pixel-accent-hover: #dbb52e;
+  --pixel-green: #4ade80;
+  --pixel-yellow: #facc15;
+  --pixel-red: #ef4444;
+  --pixel-text: #e8e2d8;
+  --pixel-muted: #a09888;
+  /* 全站统一等宽字体（与右下角记录一致），方便阅读数据 */
+  --pixel-font: "SF Mono", "Cascadia Code", Consolas, "Liberation Mono", Menlo, monospace;
+  --pixel-font-chat: "SF Mono", "Cascadia Code", Consolas, "Liberation Mono", Menlo, monospace;
+  --pixel-radius: 8px;
+  --pixel-radius-sm: 6px;
+  --pixel-radius-lg: 12px;
+}
+
+img,
+canvas {
+  image-rendering: pixelated;
+}
+
+.pixel-panel {
+  background: var(--pixel-panel);
+  border: 3px solid var(--pixel-border);
+  border-radius: var(--pixel-radius-lg);
+  color: var(--pixel-text);
+  font-family: var(--pixel-font);
+  font-size: 9px;
+  line-height: 1.6;
+  image-rendering: pixelated;
+}
+
+.pixel-button {
+  font-family: var(--pixel-font);
+  font-size: 9px;
+  padding: 8px 16px;
+  border: 3px solid var(--pixel-border);
+  background: var(--pixel-panel-fill);
+  color: var(--pixel-text);
+  cursor: pointer;
+  text-transform: uppercase;
+  transition:
+    background 0.1s,
+    border-color 0.1s;
+  outline: none;
+  border-radius: var(--pixel-radius-sm);
+}
+
+.pixel-button:hover:not(:disabled) {
+  background: var(--pixel-border);
+  border-color: var(--pixel-border-light);
+}
+
+.pixel-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pixel-button--primary {
+  background: var(--pixel-accent);
+  border-color: var(--pixel-accent);
+  color: #1a1814;
+}
+
+.pixel-button--primary:hover:not(:disabled) {
+  background: var(--pixel-accent-hover);
+  border-color: var(--pixel-accent-hover);
+}
+
+.pixel-input {
+  font-family: var(--pixel-font-chat);
+  font-size: 13px;
+  padding: 8px 12px;
+  border: 1px solid var(--pixel-border);
+  border-radius: var(--pixel-radius-sm);
+  background: var(--pixel-bg);
+  color: var(--pixel-text);
+  resize: vertical;
+  width: 100%;
+  min-height: 60px;
+}
+
+.pixel-input::placeholder {
+  font-family: var(--pixel-font-chat);
+  font-size: 13px;
+}
+
+.pixel-input:focus {
+  outline: none;
+  border-color: var(--pixel-accent);
+  box-shadow: 0 0 0 1px var(--pixel-accent);
+}
+
+.pixel-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.pixel-dot--green {
+  background: var(--pixel-green);
+  box-shadow: 0 0 4px var(--pixel-green);
+}
+
+.pixel-dot--yellow {
+  background: var(--pixel-yellow);
+  box-shadow: 0 0 4px var(--pixel-yellow);
+}
+
+.pixel-dot--red {
+  background: var(--pixel-red);
+  box-shadow: 0 0 4px var(--pixel-red);
+}
+
+.pixel-dot--gray {
+  background: var(--pixel-muted);
+}
+
+.pixel-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 42px;
+  min-height: 42px;
+  font-size: 22px;
+  line-height: 1;
+  border: 3px solid var(--pixel-border);
+  background: var(--pixel-panel-fill);
+  color: var(--pixel-text);
+  cursor: pointer;
+  flex-shrink: 0;
+  padding: 0;
+  font-family: sans-serif;
+  transition:
+    background 0.1s,
+    border-color 0.1s;
+  border-radius: var(--pixel-radius-sm);
+}
+
+.pixel-icon-btn:hover:not(:disabled) {
+  background: var(--pixel-border);
+  border-color: var(--pixel-border-light);
+}
+
+.pixel-icon-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pixel-icon-btn--primary {
+  background: var(--pixel-accent);
+  border-color: var(--pixel-accent);
+  color: #1a1814;
+}
+
+.pixel-icon-btn--primary:hover:not(:disabled) {
+  background: var(--pixel-accent-hover);
+  border-color: var(--pixel-accent-hover);
+}
+
+/* Larger icon buttons for chat input controls only */
+.pixel-chat-icon-btn {
+  min-width: 46px;
+  min-height: 46px;
+  font-size: 24px;
+}
+
+/* Chat composer input should align with action buttons */
+.pixel-chat-input {
+  min-height: 46px;
+  height: 46px;
+  padding: 10px 12px;
+  resize: none;
+}
+
+@keyframes pixel-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
+.pixel-cursor {
+  display: inline;
+  color: var(--pixel-green);
+  animation: pixel-blink 0.8s step-end infinite;
+}
