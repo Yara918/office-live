@@ -37,7 +37,7 @@ node scripts/deliver.mjs --base <表格链接或base_token> --admin <管理员�
 
 **脚本自动完成**：读取表格 → 生成配置 → 本地模式准备 → 验证数据 → 输出本地启动指引。
 
-**交付闭环**：生成、安装依赖、启动服务、验证首页、验证 `/api/office/snapshot?force=1` 属于同一条交付链路。**启动服务必须用「系统托管」方式（Windows：计划任务 `schtasks`；macOS：`launchd`），禁止把裸 `npm run dev` 后台进程当作交付**——部分 agent 平台会自动回收 agent 会话启动的后台进程，导致「交付的链接打不开」。系统托管方式由操作系统管理进程、不依赖 agent 会话，交付后链接持续存活。启动后必须验证首页 200 与快照 `source: feishu`，再一次性给出本地地址、数据来源、表数、记录数、成员数和写回验证结论。除非需要用户扫码授权、等待用户补齐必答确认，或命令已经明确失败，否则不要停在“装依赖中 / 服务启动中 / 验证中”。详细见 [references/deployment.md](references/deployment.md)「启动页面」与 [references/operations.md](references/operations.md) 第 2 节。
+**交付闭环**：生成、安装依赖、启动服务、验证首页、验证 `/api/office/snapshot?force=1` 属于同一条交付链路。**启动服务必须用「隐藏窗口 + 独立进程」方式（Windows：VBScript 隐藏窗口；macOS：`launchd`），禁止把裸 `npm run dev` 后台进程或 `schtasks` 计划任务当作交付**——部分 agent 平台会自动回收 agent 会话启动的后台进程（裸 `npm run dev` 后台会被回收，`schtasks` 在此类环境也可能以 `0xC000013A` 被终止），导致「交付的链接打不开」。隐藏窗口 + 独立进程方式由操作系统管理进程、不依赖 agent 会话，交付后链接持续存活（已实测：Windows VBScript 方式启动后稳定在线、无黑色弹窗）。启动后必须验证首页 200 与快照 `source: feishu`，再一次性给出本地地址、数据来源、表数、记录数、成员数和写回验证结论。除非需要用户扫码授权、等待用户补齐必答确认，或命令已经明确失败，否则不要停在“装依赖中 / 服务启动中 / 验证中”。详细见 [references/deployment.md](references/deployment.md)「启动页面」与 [references/operations.md](references/operations.md) 第 2 节。
 
 **授权不能后台等待（一次扫码即可，必须完成令牌兑换）**：首次未授权时，`deliver.mjs` 生成飞书授权二维码/链接并输出 `device_code` 后退出。用户扫码同意后，agent 必须先用 `deliver.mjs` 输出的 `device_code` 执行**令牌兑换**（`lark-cli auth login --device-code <code> --domain base`，该命令会阻塞直到授权完成并落盘），再运行 `lark-cli auth status --json --verify` 确认授权生效，最后重跑同一条 `deliver.mjs` 命令。**只做 `auth status` 而不做 `--device-code` 兑换，令牌不会落盘，会错误地要求用户再扫一次码**。不要在同一条命令里长时间轮询 `auth login --device-code`（`--device-code` 本身是阻塞兑换命令，只能单独执行），不要对用户说“授权后我会自动继续”。
 

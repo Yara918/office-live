@@ -832,9 +832,10 @@ export function tableTitle(role: OfficeTableConfig["role"], fallback: string): s
   // ── ⑥ 输出本地启动指引 ─────────────────────────
   console.log(`\n✅ 配置已生成，总耗时 ${((Date.now() - started) / 1000).toFixed(0)}s`);
   console.log(`   表格: ${baseRealName || tables[0]?.name || "未知"} | 管理口令: ${adminCode}`);
-  console.log(`\n   启动本地页面（二选一）：`);
-  console.log(`   ① 开发模式: $env:PORT='${localPort}'; npm run dev  → 打开 http://localhost:${localPort}`);
-  console.log(`   ② 生产模式: $env:PORT='${localPort}'; npm run build; npm start  → 打开 http://localhost:${localPort}`);
+  console.log(`\n   启动本地页面（必须用「隐藏窗口 + 独立进程」方式，避免被 agent 环境回收，详见 references/deployment.md「启动页面」）：`);
+  console.log(`   Windows: 在输出目录用 start-hidden.vbs（VBScript 隐藏窗口）启动 → 打开 http://localhost:${localPort}`);
+  console.log(`   macOS: 用 launchd 加载（见 deployment.md「启动页面」） → 打开 http://localhost:${localPort}`);
+  console.log(`   验证首页 200 与快照 source: feishu 后再交付地址。`);
   console.log(`\n   页面通过 lark-cli 读写您的飞书表格（当前授权用户: ${authorizedUser || "已登录用户"}）。`);
   console.log(`   提示：表格分享权限为「可编辑」时支持双向同步；未开启或仅可阅读时只能查看与互动（写回被拦下）。`);
   console.log(`   注：再次生成会覆盖上一份本地页面（同一输出目录），飞书表格数据不受影响。`);
