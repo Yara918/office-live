@@ -548,7 +548,7 @@ export default function TerminalModal() {
               {candidateMembers
                 .map((member) => (
                   <option key={member.id} value={member.name}>
-                    {member.name} · {member.role}
+                    {member.role && member.role !== "成员" ? `${member.name}（${member.role}）` : member.name}
                   </option>
                 ))}
             </select>

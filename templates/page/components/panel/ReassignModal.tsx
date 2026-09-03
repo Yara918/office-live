@@ -211,7 +211,10 @@ export default function ReassignModal() {
                   setNotice(null);
                 }}
               >
-                <div style={{ fontSize: 10 }}>{member.name} · {member.role}</div>
+                <div style={{ fontSize: 10 }}>{member.name}</div>
+                {member.role && member.role !== "成员" ? (
+                  <div style={{ marginTop: 2, fontSize: 8, opacity: 0.75, color: active ? "rgba(255,255,255,0.85)" : "var(--pixel-muted)" }}>{member.role}</div>
+                ) : null}
                 <div style={{ marginTop: 5, color: active ? "white" : "var(--pixel-muted)" }}>
                   项目×{projectCount} · 当前 {activeTaskCount} 个未完成
                 </div>
