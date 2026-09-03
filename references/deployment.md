@@ -22,9 +22,14 @@
 1. **生成配置**：按 config-guide 确认主入口和字段后，deliver.mjs 自动改写 `lib/office-config.ts`（baseToken / 表 ID / 字段映射 / 管理员 / 口令），并把未选表追加为全量数据表
 2. **本地模式准备**：deliver.mjs 清空部署前缀（basePath/BASE_PATH 置空）
 3. **验证数据**：deliver.mjs 直接调 lark-cli 读表确认授权与数据可用
-4. **启动页面（必须用「隐藏窗口 + 独立进程」方式，防弹窗、防被回收）**：
-   - **为什么**：①直接用 `npm run dev` 启动的后台进程会挂靠在 agent 会话上，部分 agent 平台会自动回收这类进程，导致「交付的链接打不开」（浏览器报 `ERR_CONNECTION_REFUSED`）；②用普通 `Start-Process` 拉起会弹出黑色 cmd 窗口，影响体验；③部分环境下连 `schtasks` 计划任务也可能被回收（进程以 `0xC000013A` Ctrl+C 终止）。**必须用「隐藏窗口 + 独立进程」方式**——服务窗口不可见、进程由系统接管，不依赖 agent 会话（已实测：Windows VBScript 方式启动后稳定在线、无黑色弹窗）。
-   - **Windows（VBScript 隐藏窗口，推荐）**：
+4. **启动页面（必须用「用户级登录自启 + 隐藏窗口 + 独立进程」，防弹窗、防被回收、保证能读到用户飞书数据）**：
+   - **为什么**：
+     ①直接用 `npm run dev` 启动的后台进程会挂靠在 agent 会话上，部分 agent 平台会自动回收这类进程，导致「交付的链接打不开」（浏览器报 `ERR_CONNECTION_REFUSED`）；
+     ②用普通 `Start-Process` 拉起会弹出黑色 cmd 窗口，影响体验；
+     ③部分环境下连 `schtasks` 计划任务**立即运行**（`/Run`）也可能被回收（进程以 `0xC000013A` Ctrl+C 终止）；
+     ④**禁止用系统服务 / 系统账户（如 LocalSystem）启动**——飞书授权 token 存在用户凭据管理器 / macOS 钥匙串，**按用户隔离**，系统账户访问不到，页面会只剩管理员、无数据（快照 `source: static`）；
+     ⑤**必须用「用户级登录自启」**：以**用户本人身份**、在**登录时自动启动**——既能访问用户飞书凭据（读到真实数据 `source: feishu`），又由操作系统触发、不依赖 agent 会话（不被回收），且隐藏窗口（无弹窗）。
+   - **Windows（登录触发计划任务 + VBScript 隐藏窗口，推荐）**：
      1. 在输出目录写一个启动批处理 `<输出目录>\start-server.cmd`：
         ```
         @echo off
@@ -38,9 +43,14 @@
         Set ws = CreateObject("WScript.Shell")
         ws.Run "<输出目录>\start-server.cmd", 0, False
         ```
-     3. 运行：`wscript.exe "<输出目录>\start-hidden.vbs"`——隐藏窗口（无黑色弹窗）、进程独立（不被 agent 会话回收）。
-     停止服务：`netstat -ano | findstr :<端口>` 找到监听 PID 后 `taskkill /PID <PID> /F`。
-   - **macOS（`launchd`）**：加载一个 LaunchAgent plist 启动服务（`KeepAlive` 保持运行），由系统托管、不依赖 agent 会话（与 Windows 独立进程原理一致）。示例 `~/Library/LaunchAgents/com.office-live.server.plist`：
+     3. **注册「登录触发」计划任务**（关键：用户登录电脑时由系统自动启动、以用户身份运行，不依赖 agent 会话）：
+        ```
+        schtasks /Create /TN "OfficeLiveServer" /TR "wscript.exe \"<输出目录>\start-hidden.vbs\"" /SC ONLOGON /RL LIMITED /F
+        ```
+     4. 立即启动一次验证：`schtasks /Run /TN "OfficeLiveServer"`
+     5. 验证通过后即交付。效果：用户登录自动启动；以用户身份运行 → 能访问用户飞书凭据；VBScript 隐藏窗口 → 无弹窗；由系统登录触发 → 不依赖 agent 会话、不被回收。
+     停止/删除：先 `schtasks /Delete /TN "OfficeLiveServer" /F` 删除任务，再 `netstat -ano | findstr :<端口>` 找到监听 PID 后 `taskkill /PID <PID> /F`。
+   - **macOS（`launchd` LaunchAgent，用户级）**：加载一个**用户级** LaunchAgent plist（放在 `~/Library/LaunchAgents/`，`RunAtLoad` + `KeepAlive` 保持运行）——用户级 LaunchAgent **以用户身份运行**，能访问用户钥匙串里的飞书凭据，登录时自动加载、由系统托管、不依赖 agent 会话（与 Windows 登录计划任务原理一致）。示例 `~/Library/LaunchAgents/com.office-live.server.plist`：
      ```xml
      <?xml version="1.0" encoding="UTF-8"?>
      <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -56,7 +66,7 @@
      </dict></plist>
      ```
      加载：`launchctl load ~/Library/LaunchAgents/com.office-live.server.plist`；停止：`launchctl unload ~/Library/LaunchAgents/com.office-live.server.plist`；查看是否在运行：`lsof -i :<端口>`。
-   - 启动后必须验证：`curl -I http://localhost:<端口>` 期望 200；`curl http://localhost:<端口>/api/office/snapshot?force=1` 返回 `source: feishu`。验证通过后才交付地址。
+   - 启动后必须验证：`curl -I http://localhost:<端口>` 期望 200；`curl http://localhost:<端口>/api/office/snapshot?force=1` 返回 **`source: feishu`（必须真实数据，不能是 `static`）**。验证通过后才交付地址。
 
 > 一键完成前 3 步：`node scripts/deliver.mjs --base <base_token或链接> --admin <管理员姓名> [--code <管理口令>] --task-table <页面主入口表名> [--member-table <人员档案表名>] [--project-table <项目表名>] --owner-field <负责人列名> --name-field <事项名称列名>`
 

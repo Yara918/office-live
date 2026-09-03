@@ -51,7 +51,7 @@
 
 页面只显示管理员、快照接口返回 `source: static`、或浏览器报 `ERR_CONNECTION_REFUSED` 时，按顺序排查，**不要凭页面文案猜**：
 
-0. **服务进程被 agent 环境回收（链接打不开时最先查）**：交付的 `localhost` 链接打不开，先看服务是否在运行（Windows：`netstat -ano | findstr :<端口>`；macOS：`lsof -i :<端口>`）。**服务没在跑 = 启动方式用了裸 `npm run dev` 后台进程，被 agent 平台回收**（现象：交付时还能打开，过一段时间莫名连接被拒；与用户是否操作无关）。**修复：改用「隐藏窗口 + 独立进程」方式启动（Windows VBScript / macOS `launchd`），见 deployment.md「启动页面」**——普通 `Start-Process` 会弹黑色 cmd 窗口、部分环境下 `schtasks` 计划任务也可能被回收（0xC000013A），都不要用作交付；启动后验证首页 200 再交付。
+0. **服务进程被 agent 环境回收 / 系统账户读不到凭据（链接打不开或只剩管理员时最先查）**：交付的 `localhost` 链接打不开，先看服务是否在运行（Windows：`netstat -ano | findstr :<端口>`；macOS：`lsof -i :<端口>`）。**服务没在跑 = 启动方式用了裸 `npm run dev` 后台进程或 `schtasks /Run` 立即运行，被 agent 平台回收**（现象：交付时还能打开，过一段时间莫名连接被拒；与用户是否操作无关）。**修复：改用「用户级登录自启」方式启动（Windows：登录触发计划任务 + VBScript 隐藏窗口；macOS：用户级 `launchd` LaunchAgent），见 deployment.md「启动页面」**——普通 `Start-Process` 会弹黑色 cmd 窗口、`schtasks /Run` 可能被回收（0xC000013A）、**系统服务/系统账户（LocalSystem）读不到用户飞书凭据**（快照 `source: static`、只剩管理员），都不可用作交付。启动后验证首页 200 与快照 **`source: feishu`** 再交付。
 1. **看服务端日志真实错误**：快照接口失败时服务端会 `console.error("[office-live] 快照读取失败…")` 输出真实错误（授权过期 / 限流 / 字段问题）。
 2. **授权失效（常见）**：`temporary token expired` / `user identity missing` → 走本文档第 1 节重新扫码授权。
 3. **飞书限流**：`800050828` / `fine-grained rate limiting` → 已内置退避重试；不要手动降级为静态数据。

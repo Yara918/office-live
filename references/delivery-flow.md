@@ -132,7 +132,7 @@ cd 模板目录
 node scripts/deliver.mjs --base <base_token或链接> --admin <管理员姓名> [--code <管理口令>] --task-table <页面主入口表名> [--member-table <人员档案表名>] [--project-table <项目表名>] --owner-field <负责人列名> --name-field <事项名称列名>
 ```
 
-- deliver.mjs 自动完成全部准备，输出本地启动指引（启动必须用「隐藏窗口 + 独立进程」方式，Windows VBScript / macOS launchd，见 [deployment.md](deployment.md)「启动页面」，打开真实端口）
+- deliver.mjs 自动完成全部准备，输出本地启动指引（启动必须用「用户级登录自启」方式：Windows 登录触发计划任务 + VBScript 隐藏窗口 / macOS launchd LaunchAgent，见 [deployment.md](deployment.md)「启动页面」，打开真实端口）
 - **首次生成时**：deliver.mjs 会输出**飞书授权链接/二维码**并退出。用户扫码 → 网页点「同意」后，agent 先运行 `lark-cli auth status --json --verify` 验证授权，再重跑同一条 `deliver.mjs` 命令继续生成。不要让命令长时间停在授权等待中。
 - **不要向用户要凭证**：全程不需要任何应用凭证/密钥/应用标识，授权通过自动弹出的扫码链接完成
 - 详细步骤与排错：见 [deployment.md](deployment.md)

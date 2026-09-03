@@ -856,8 +856,8 @@ export function tableTitle(role: OfficeTableConfig["role"], fallback: string): s
   // ── ⑥ 输出本地启动指引 ─────────────────────────
   console.log(`\n✅ 配置已生成，总耗时 ${((Date.now() - started) / 1000).toFixed(0)}s`);
   console.log(`   表格: ${baseRealName || tables[0]?.name || "未知"} | 管理口令: ${adminCode}`);
-  console.log(`\n   启动本地页面（必须用「隐藏窗口 + 独立进程」方式，避免被 agent 环境回收，详见 references/deployment.md「启动页面」）：`);
-  console.log(`   Windows: 在输出目录用 start-hidden.vbs（VBScript 隐藏窗口）启动 → 打开 http://localhost:${localPort}`);
+  console.log(`\n   启动本地页面（必须用「用户级登录自启」方式：Windows 登录触发计划任务 + VBScript 隐藏窗口 / macOS launchd，避免被 agent 环境回收，详见 references/deployment.md「启动页面」）：`);
+  console.log(`   Windows: 在输出目录注册登录触发计划任务 schtasks /Create /TN "OfficeLiveServer" /TR "wscript.exe \\"<输出目录>\\start-hidden.vbs\\"" /SC ONLOGON /RL LIMITED /F，再 schtasks /Run /TN "OfficeLiveServer" → 打开 http://localhost:${localPort}`);
   console.log(`   macOS: 用 launchd 加载（见 deployment.md「启动页面」） → 打开 http://localhost:${localPort}`);
   console.log(`   验证首页 200 与快照 source: feishu 后再交付地址。`);
   console.log(`\n   页面通过 lark-cli 读写您的飞书表格（当前授权用户: ${authorizedUser || "已登录用户"}）。`);

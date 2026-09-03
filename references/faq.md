@@ -26,7 +26,7 @@
 
 | 问题 | 处理 |
 |---|---|
-| 本地页面打不开 | 用「隐藏窗口 + 独立进程」方式启动服务（Windows VBScript / macOS launchd，见 deployment.md「启动页面」），验证首页 200 与快照 `source: feishu` 后再交付地址 |
+| 本地页面打不开 | 用「用户级登录自启」方式启动服务（Windows 登录触发计划任务 + VBScript 隐藏窗口 / macOS launchd LaunchAgent，见 deployment.md「启动页面」），验证首页 200 与快照 `source: feishu` 后再交付地址；页面只剩管理员无数据 = 用系统账户启动导致读不到用户飞书凭据，改用用户级登录自启 |
 | 3000 被占用 | 使用 `deliver.mjs` 自动选择的新端口，并按该端口启动和验证，不能误连旧服务 |
 | 页面加载慢 | 首次加载需下载素材（数 MB），可接受 |
 
