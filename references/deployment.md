@@ -22,9 +22,31 @@
 1. **生成配置**：按 config-guide 确认主入口和字段后，deliver.mjs 自动改写 `lib/office-config.ts`（baseToken / 表 ID / 字段映射 / 管理员 / 口令），并把未选表追加为全量数据表
 2. **本地模式准备**：deliver.mjs 清空部署前缀（basePath/BASE_PATH 置空）
 3. **验证数据**：deliver.mjs 直接调 lark-cli 读表确认授权与数据可用
-4. **启动页面**：
-   - 开发模式：按 `deliver.mjs` 输出的端口运行 `PORT=<端口> npm run dev` → 打开对应本地地址
-   - 生产模式：按 `deliver.mjs` 输出的端口运行 `PORT=<端口> npm run build && npm start` → 打开对应本地地址
+4. **启动页面（必须用「系统托管」方式，防被回收）**：
+   - **为什么**：直接用 `npm run dev` 启动的后台进程会挂靠在 agent 会话上，部分 agent 平台会自动回收这类进程，导致「交付的链接打不开」（浏览器报 `ERR_CONNECTION_REFUSED`）。**必须改用操作系统托管**——服务由系统管理、不依赖 agent 会话，交付后链接持续存活（已实测：Windows 计划任务方式启动后连续在线、进程 PID 不变）。
+   - **Windows（计划任务 `schtasks`）**：
+     ```
+     schtasks /create /tn office-live /tr "cmd /c cd /d <输出目录> && set PORT=<端口>&& set OFFICE_LIVE_PORT=<端口>&& npm run dev > <输出目录>\server.log 2>&1" /sc once /st 23:59 /f
+     schtasks /run /tn office-live
+     ```
+     停止服务：`schtasks /end /tn office-live`；查看是否在运行：`netstat -ano | findstr :<端口>`。
+   - **macOS（`launchd`）**：加载一个 LaunchAgent plist 启动服务（`KeepAlive` 保持运行），同样由系统托管、不依赖 agent 会话。示例 `~/Library/LaunchAgents/com.office-live.server.plist`：
+     ```xml
+     <?xml version="1.0" encoding="UTF-8"?>
+     <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+     <plist version="1.0"><dict>
+       <key>Label</key><string>com.office-live.server</string>
+       <key>ProgramArguments</key><array>
+         <string>/bin/bash</string>
+         <string>-lc</string>
+         <string>cd "$HOME/Documents/office-live-output" &amp;&amp; PORT=&lt;端口&gt; OFFICE_LIVE_PORT=&lt;端口&gt; npm run dev &gt; "$HOME/Documents/office-live-output/server.log" 2&gt;&amp;1</string>
+       </array>
+       <key>RunAtLoad</key><true/>
+       <key>KeepAlive</key><true/>
+     </dict></plist>
+     ```
+     加载：`launchctl load ~/Library/LaunchAgents/com.office-live.server.plist`；停止：`launchctl unload ~/Library/LaunchAgents/com.office-live.server.plist`；查看是否在运行：`lsof -i :<端口>`。
+   - 启动后必须验证：`curl -I http://localhost:<端口>` 期望 200；`curl http://localhost:<端口>/api/office/snapshot?force=1` 返回 `source: feishu`。验证通过后才交付地址。
 
 > 一键完成前 3 步：`node scripts/deliver.mjs --base <base_token或链接> --admin <管理员姓名> [--code <管理口令>] --task-table <页面主入口表名> [--member-table <人员档案表名>] [--project-table <项目表名>] --owner-field <负责人列名> --name-field <事项名称列名>`
 

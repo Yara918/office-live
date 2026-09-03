@@ -46,12 +46,13 @@
 
 ---
 
-## 2. "连不上 / 页面只剩管理员一个人" 的排查顺序（必按此顺序）
+## 2. "连不上 / 页面只剩管理员一个人 / 链接打不开" 的排查顺序（必按此顺序）
 
-页面只显示管理员、或快照接口返回 `source: static` 时，按顺序排查，**不要凭页面文案猜**：
+页面只显示管理员、快照接口返回 `source: static`、或浏览器报 `ERR_CONNECTION_REFUSED` 时，按顺序排查，**不要凭页面文案猜**：
 
+0. **服务进程被 agent 环境回收（链接打不开时最先查）**：交付的 `localhost` 链接打不开，先看服务是否在运行（Windows：`netstat -ano | findstr :<端口>`；macOS：`lsof -i :<端口>`）。**服务没在跑 = 启动方式用了裸 `npm run dev` 后台进程，被 agent 平台回收**（现象：交付时还能打开，过一段时间莫名连接被拒；与用户是否操作无关）。**修复：改用系统托管启动（Windows 计划任务 `schtasks` / macOS `launchd`），见 deployment.md「启动页面」**；启动后验证首页 200 再交付。
 1. **看服务端日志真实错误**：快照接口失败时服务端会 `console.error("[office-live] 快照读取失败…")` 输出真实错误（授权过期 / 限流 / 字段问题）。
-2. **授权失效（最常见）**：`temporary token expired` / `user identity missing` → 走本文档第 1 节重新扫码授权。
+2. **授权失效（常见）**：`temporary token expired` / `user identity missing` → 走本文档第 1 节重新扫码授权。
 3. **飞书限流**：`800050828` / `fine-grained rate limiting` → 已内置退避重试；不要手动降级为静态数据。
 4. **lark 环境不一致**：`deliver.mjs` 能读、页面读不到 → 检查页面服务是否继承了同一套 lark 环境变量（`LARK_CLI_BIN` 等）。前台启动优先，避免脱离会话的后台进程作为最终验证。
 5. **字段/解析错误**：错误信息里含字段名或解析栈 → 按对应字段类型处理。
