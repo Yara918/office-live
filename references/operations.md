@@ -8,8 +8,9 @@
 ## 0. 安装 Skill（git 不通自动降级 zip）
 
 - 用 `git clone` 安装本 Skill；**若 `git clone` 因 TLS 握手 / 网络代理失败，自动降级为下载仓库 zip 压缩包安装**（解压后放到 Skill 安装目录，内容与 git 版本一致），不要因 git 不通卡死或放弃。
+- **git 的 stderr 输出不能当作失败信号**：部分 shell（如 Windows PowerShell）会把 git 的正常 stderr 输出（进度信息）误判为错误，导致"克隆失败"误报。正确处理：克隆后**检查目标目录是否已创建成功**（或把 stderr 重定向到文件看真实报错），不要凭 stderr 报错就重试。
 - 安装前若已有同名旧副本，**先删除旧副本再安装**，保证装的是干净最新版。
-- 安装完成后**先检测 lark-cli 是否支持 `auth`**：`lark-cli auth status` 报 `unknown command "auth"` → 改用支持 `auth` 的 npm 版 lark-cli（`lark-cli` / `lark-cli.cmd`），再进入流程。
+- **lark-cli 用 npm 版并确认支持 `auth`**：npm 上的包名是 **`@larksuite/cli`**（安装到 PATH 后的命令是 `lark-cli` / `lark-cli.cmd`）。安装后先检测：`lark-cli auth status` 报 `unknown command "auth"` → 说明命中不支持 `auth` 的旧版（如平台内置二进制），**统一改用 npm 版 `@larksuite/cli`**（`npm i -g @larksuite/cli`）再进入流程，避免多个 lark-cli 并存导致版本混乱。
 
 ---
 
@@ -50,7 +51,7 @@
 
 页面只显示管理员、快照接口返回 `source: static`、或浏览器报 `ERR_CONNECTION_REFUSED` 时，按顺序排查，**不要凭页面文案猜**：
 
-0. **服务进程被 agent 环境回收（链接打不开时最先查）**：交付的 `localhost` 链接打不开，先看服务是否在运行（Windows：`netstat -ano | findstr :<端口>`；macOS：`lsof -i :<端口>`）。**服务没在跑 = 启动方式用了裸 `npm run dev` 后台进程，被 agent 平台回收**（现象：交付时还能打开，过一段时间莫名连接被拒；与用户是否操作无关）。**修复：改用系统托管启动（Windows 计划任务 `schtasks` / macOS `launchd`），见 deployment.md「启动页面」**；启动后验证首页 200 再交付。
+0. **服务进程被 agent 环境回收（链接打不开时最先查）**：交付的 `localhost` 链接打不开，先看服务是否在运行（Windows：`netstat -ano | findstr :<端口>`；macOS：`lsof -i :<端口>`）。**服务没在跑 = 启动方式用了裸 `npm run dev` 后台进程，被 agent 平台回收**（现象：交付时还能打开，过一段时间莫名连接被拒；与用户是否操作无关）。**修复：改用「隐藏窗口 + 独立进程」方式启动（Windows VBScript / macOS `launchd`），见 deployment.md「启动页面」**——普通 `Start-Process` 会弹黑色 cmd 窗口、部分环境下 `schtasks` 计划任务也可能被回收（0xC000013A），都不要用作交付；启动后验证首页 200 再交付。
 1. **看服务端日志真实错误**：快照接口失败时服务端会 `console.error("[office-live] 快照读取失败…")` 输出真实错误（授权过期 / 限流 / 字段问题）。
 2. **授权失效（常见）**：`temporary token expired` / `user identity missing` → 走本文档第 1 节重新扫码授权。
 3. **飞书限流**：`800050828` / `fine-grained rate limiting` → 已内置退避重试；不要手动降级为静态数据。
